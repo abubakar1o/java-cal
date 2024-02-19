@@ -3,9 +3,6 @@ pipeline{
     tools{
         maven 'MAVEN'
     }
-    environment {
-        JERSEY_VERSION = '2.33'
-    }
     stages{
         stage ("Build"){
             steps{
