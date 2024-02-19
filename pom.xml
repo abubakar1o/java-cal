@@ -171,6 +171,6 @@
                 <artifactId>maven-pmd-plugin</artifactId>
                 <version>3.10.0</version>
             </plugin>
-        </plugin>
+        </plugins>
     </reporting>
 </project>
