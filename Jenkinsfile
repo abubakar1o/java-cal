@@ -15,7 +15,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Checkout the source code from the repository
-                git branch: 'main', url: 'https://github.com/abubakar1o/Java-CICD.git'
+                git branch: 'main', url: 'https://github.com/abubakar1o/java-cal.git'
             }
         }
         
