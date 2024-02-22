@@ -1,45 +1,72 @@
 pipeline {
     agent any
     
-    tools {
+    environment {
+        DOCKER_IMAGE_TAG = "java-app"
+        DOCKER_CONTAINER_NAME = "pet-store"
+        SERVER_IP = "74.235.239.120"
+        SERVER_PORT = "80"
+    }
+    tools{
         maven 'MAVEN'
     }
     
     stages {
-        stage("Build") {
+        stage('Checkout') {
             steps {
-                // Build the project
+                // Checkout the source code from the repository
+                git branch: 'main', url: 'https://github.com/abubakar1o/Java-CICD.git'
+            }
+        }
+        
+        stage('Build and Test') {
+            steps {
+                // Build and test the Java application
                 sh 'mvn clean package'
             }
             post {
                 success {
-                    echo "Archiving the Artifacts"
-                    // Archive the generated WAR file
-                    archiveArtifacts artifacts: '**/target/*.war'
+                    echo "Build and Test succeeded"
+                }
+                failure {
+                    echo "Build and Test failed"
                 }
             }
         }
         
-        stage('Run Tests') {
+        stage('Build Docker Image') {
             steps {
-                // Run unit tests
-                sh 'mvn test'
-                // Optionally, you can run additional tests here
+                // Build the Docker image for the Java application
+                script {
+                    sh "docker build -t java-app ."
+                }
             }
             post {
                 success {
-                    echo "Tests Passed Successfully"
+                    echo "Docker image build succeeded"
                 }
                 failure {
-                    echo "Tests Failed. Please check the test results."
+                    echo "Docker image build failed"
                 }
             }
         }
         
-        stage('Deploy to Tomcat Server') {
+        stage('Deploy') {
             steps {
-                // Deploy the WAR file to Tomcat server
-                deploy adapters: [tomcat9(credentialsId: '4fd75e70-72d4-4eca-88f2-ceb50d550227', path: '', url: 'http://74.235.239.120/')], contextPath: '/java-webapp', war: '**/*.war'
+                // Deploy the Docker container on the server
+                script {
+                    sh "ssh abubakar@${SERVER_IP} 'docker stop ${DOCKER_CONTAINER_NAME} || true'"
+                    sh "ssh abubakar@${SERVER_IP} 'docker rm ${DOCKER_CONTAINER_NAME} || true'"
+                    sh "ssh abubakar@${SERVER_IP} 'docker run -d --name ${DOCKER_CONTAINER_NAME} -p ${SERVER_PORT}:8080 java-app'"
+                }
+            }
+            post {
+                success {
+                    echo "Deployment succeeded"
+                }
+                failure {
+                    echo "Deployment failed"
+                }
             }
         }
     }
