@@ -3,12 +3,13 @@ pipeline {
     
     environment {
         DOCKER_IMAGE_TAG = "java-app"
-        DOCKER_CONTAINER_NAME = "pet-store"
+        DOCKER_CONTAINER_NAME = "java-cal"
         SERVER_IP = "74.235.239.120"
         SERVER_PORT = "80"
     }
-    tools{
+    tools {
         maven 'MAVEN'
+        Docker 'Docker'
     }
     
     stages {
@@ -55,9 +56,16 @@ pipeline {
             steps {
                 // Deploy the Docker container on the server
                 script {
+                    // Stop and remove existing container if it exists
                     sh "ssh abubakar@${SERVER_IP} 'docker stop ${DOCKER_CONTAINER_NAME} || true'"
                     sh "ssh abubakar@${SERVER_IP} 'docker rm ${DOCKER_CONTAINER_NAME} || true'"
-                    sh "ssh abubakar@${SERVER_IP} 'docker run -d --name ${DOCKER_CONTAINER_NAME} -p ${SERVER_PORT}:8080 java-app'"
+                    
+                    // Run the Docker container using withDockerContainer block
+                    withDockerContainer(args: '-d -p 8000:8080 --name java-cal', image: 'java-app', toolName: 'Docker') {
+                        // Add any additional steps or blocks within the Docker container
+                        // For example, you can run additional commands or execute scripts inside the container
+                        // some block
+                    }
                 }
             }
             post {
